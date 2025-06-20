@@ -1,0 +1,5 @@
+{
+    "require": {
+        "phreesoft/bizuno":"^7.0"
+    }
+}
