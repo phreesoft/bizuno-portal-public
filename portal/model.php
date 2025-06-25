@@ -21,7 +21,7 @@
  * @author     Dave Premo, PhreeSoft <support@phreesoft.com>
  * @copyright  2008-2025, PhreeSoft, Inc.
  * @license    https://www.gnu.org/licenses/agpl-3.0.txt
- * @version    7.x Last Update: 2025-06-20
+ * @version    7.x Last Update: 2025-06-25
  * @filesource /portal/model.php
  */
 
@@ -204,7 +204,7 @@ final class portal
     function cURL($url, $data=[], $type='get', $opts=[]) {
         $useragent = 'Mozilla/5.0 (Windows NT 5.1; rv:31.0) Gecko/20100101 Firefox/31.0';
         $size = is_array($data) ? 'array('.sizeof($data).')' : strlen($data);
-        msgDebug("\nAt class portal, sending request of length $size to url: $url via $type with opts = ".print_r($opts, true)); //  ." with opts = ".print_r($opts, true)
+        msgDebug("\nAt class portal, sending request of length $size to url: $url via $type"); // with opts = ".print_r($opts, true));
         $rData = is_array($data) ? http_build_query($data) : $data;
         if ($type == 'get') { $url = $url.'?'.$rData; }
         $headers = [];
