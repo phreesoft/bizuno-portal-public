@@ -1,6 +1,6 @@
 <?php
 /*
- * Bizuno Public - Locale translation - en_US
+ * English Language translation for local host extension
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,12 +21,14 @@
  * @author     Dave Premo, PhreeSoft <support@phreesoft.com>
  * @copyright  2008-2025, PhreeSoft, Inc.
  * @license    https://www.gnu.org/licenses/agpl-3.0.txt
- * @version    7.x Last Update: 2025-06-20
- * @filesource /portal/locale/en_US.php
+ * @version    7.x Last Update: 2025-08-30
+ * @filesource /lib/local/en_US.php
  */
 
 $lang = [
-    'install_intro' => '<p>You\'re just about ready to get started. We just need to finish installing the database tables and set up your environment. Please select from the choices below and press the Next icon. If you are not sure, not to worry, most of these can be changed through the administrator settings. It takes about 10 seconds to build your databases and you will be ready to go.</p>',
+    'install_intro' => '<p>You\'re just about ready to get started. We just need to finish installing the database tables and set up your user environment. Please select from the choices below and press the Next icon. If you are not sure, not to worry, most of these can be changed through the administrator settings. It takes about 10 seconds to build your databases and you will be ready to go.</p>',
+    'biz_user' => 'Administrator Email',
+    'biz_pass' => 'Password',
     'biz_title' => 'Business Name',
     'biz_lang' => 'Default Language',
     'biz_timezone' => 'Default Timezone',
@@ -43,9 +45,8 @@ $lang = [
     'currency' => 'Currency',
     'chart_of_accounts' => 'Chart of Accounts',
     'fiscal_year' =>'Fiscal Year',
-    'migrate_lbl' => 'Upgrade Your Bizuno DB',
-    'migrate_desc' => 'This dashboard is called when the database version is below the current released Bizuno version.',
-    'intro' => 'Looks like your database version is lower than the current Bizuno version. Press Upgrade to bring your database to the current Bizuno level.',
+    'migrate' => 'Migrate',
+    'migrate_intro' => 'Looks like your database version is from a deprecated version of Bizuno. Press Migrate to bring your database to the current Bizuno release.',
     'err_illegal_access' => 'Illegal Access!',
     'err_invalid_creds' => 'Invalid Credentials, please verify your business settings in your account at <a target="_blank" href="https://www.phreesoft.com">PhreeSoft.</a>',
 ];

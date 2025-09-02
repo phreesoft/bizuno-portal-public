@@ -1,6 +1,6 @@
 <?php
 /*
- * Bizuno Public - Portal controller
+ * Portal Controller
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,19 +21,23 @@
  * @author     Dave Premo, PhreeSoft <support@phreesoft.com>
  * @copyright  2008-2025, PhreeSoft, Inc.
  * @license    https://www.gnu.org/licenses/agpl-3.0.txt
- * @version    7.x Last Update: 2025-06-20
- * @filesource /portal/controller.php
+ * @version    7.x Last Update: 2025-08-31
+ * @filesource /lib/controller.php
  */
 
 namespace bizuno;
 
-require(BIZBOOKS_ROOT.'model/functions.php'); // core Bizuno functions
-bizAutoLoad('portal/model.php', 'getUserCookie', 'function'); // portal specific
-bizAutoLoad('portal/api.php', 'portalApi');
-bizAutoLoad('portal/view.php', 'portalView');
-bizAutoLoad(BIZBOOKS_ROOT.'model/msg.php', 'messageStack');
-bizAutoLoad(BIZBOOKS_ROOT.'locale/cleaner.php', 'cleaner');
-bizAutoLoad(BIZBOOKS_ROOT.'model/io.php',  'io');
+require(BIZBOOKS_ROOT.'model/functions.php'); // Core Bizuno functions
+require(BIZUNO_ASSETS.'autoload.php'); // Load the libraries
+bizAutoLoad('lib/model.php','getUserCookie', 'function'); // portal specific
+bizAutoLoad('lib/api.php',  'portalApi');
+bizAutoLoad('lib/view.php', 'portalView');
+bizAutoLoad(BIZBOOKS_ROOT.'model/msg.php',     'messageStack');
+bizAutoLoad(BIZBOOKS_ROOT.'model/io.php',      'io');
+bizAutoLoad(BIZBOOKS_ROOT.'model/db.php',      'db');
+bizAutoLoad(BIZBOOKS_ROOT.'model/mail.php',    'bizunoMailer');
+bizAutoLoad(BIZBOOKS_ROOT.'model/manager.php', 'mgrJournal');
+bizAutoLoad(BIZBOOKS_ROOT.'locale/cleaner.php','cleaner');
 
 class portalCtl
 {
@@ -53,6 +57,11 @@ class portalCtl
         $cleaner = new cleaner();
         $portal  = new portal();
         $GLOBALS['myDevice'] = detectDevice(); // 'desktop' or 'mobile';
+
+// Uncomment these lines to force a user logout on page refresh.
+//bizSetCookie('bizunoUser',    '', 0);
+//bizSetCookie('bizunoSession', '', 0);
+
         $this->creds = getUserCookie();
         $this->userValidated = !empty($this->creds) ? true : false; // validate user
         $this->route = $this->cleanBizRt();
@@ -83,14 +92,13 @@ class portalCtl
         global $db;
         msgDebug("\nEntering getScope");
         if (!defined('BIZPORTAL')) { msgDebug("\nBIZPORTAL not defined, returning guest"); return 'guest'; } // Path to db not defined, needs install and creds set
-        bizAutoLoad(BIZBOOKS_ROOT.'model/db.php', 'db');
         $creds= defined('BIZPORTAL') ? BIZPORTAL : [];
         $db   = new db($creds);
         if (!$db->connected) { msgDebug("\nDB not connected, returning guest"); return 'guest'; }
-        if ('api'==$this->route['page'])                                             { msgDebug("\nAPI Request, returning api");         return 'api'; }
-        if ($this->userValidated &&  dbTableExists(BIZUNO_DB_PREFIX.'common_meta'))  { msgDebug("\nNormal operation, returning auth");   return 'auth'; }
-        if ($this->userValidated && !dbTableExists(BIZUNO_DB_PREFIX.'configuration')){ msgDebug("\nNeed to install, returning install"); return 'install'; }
-        if ($this->userValidated &&  dbTableExists(BIZUNO_DB_PREFIX.'configuration')){ msgDebug("\nNeed to migrate, returning migrate"); return 'migrate'; }
+        if ('portal'==$this->route['module'] && 'api'==$this->route['page'])         { msgDebug("\nAPI Request, returning api");         return 'api'; }
+        if ( $this->userValidated &&  dbTableExists(BIZUNO_DB_PREFIX.'address_book')) { msgDebug("\nNeed to migrate, returning migrate"); return 'migrate'; }
+        if ( $this->userValidated &&  dbTableExists(BIZUNO_DB_PREFIX.'common_meta'))  { msgDebug("\nNormal operation, returning auth");   return 'auth'; }
+        if (!$this->userValidated && !dbTableExists(BIZUNO_DB_PREFIX.'configuration')){ msgDebug("\nNeed to install, returning install"); return 'install'; }
         msgDebug("\nFall through, returning guest.");
         return 'guest';
     }
@@ -109,25 +117,25 @@ class portalCtl
      */
     private function goAPI()
     {
-        if ('api'==$this->route['page']) { // it's a external request
-            $portal = new portalApi();
-            $method = $this->route['method'];
-            if (method_exists($portal, $method)) { $portal->$method($this->layout); }
+        $portal = new portalApi();
+        $method = $this->route['method'];
+        if (method_exists($portal, $method)) {
+            msgDebug("\nProcessing API request {$method}");
+            $portal->$method($this->layout);
             return;
         }
-        // Fall through to login screen
-        $portal = new portalView();
-        $portal->login($this->layout);
+        msgDebug("\nAPI request {$method} WAS NOT FOUND!");
+        $guest = new portalView(); // Fall through to login screen
+        $guest->login($this->layout);
     }
     private function goInstall()
     {
-        $portal = new portalApi();
+        $portal = new portalView();
         $portal->install($this->layout);
     }
     private function goMigrate()
     {
-        msgAdd("This needs work!");
-        $portal = new portalApi();
+        $portal = new portalView();
         $portal->migrate($this->layout);
     }
     private function goAuth()
@@ -137,16 +145,11 @@ class portalCtl
     }
     private function getCodex()
     {
-        global $cleaner, $mixer, $portal, $bizunoUser;
-        require_once (BIZUNO_ASSETS.'vendor/autoload.php'); // Load the libraries
-        bizAutoLoad(BIZBOOKS_ROOT.'locale/cleaner.php', 'cleaner');
+        global $mixer, $portal, $bizunoUser;
         bizAutoLoad(BIZBOOKS_ROOT.'locale/currency.php','currency');
         bizAutoLoad(BIZBOOKS_ROOT.'model/encrypter.php','encryption');
-        bizAutoLoad(BIZBOOKS_ROOT.'model/manager.php',  'mgrJournal');
-        bizAutoLoad(BIZBOOKS_ROOT.'model/mail.php',     'bizunoMailer');
         $GLOBALS['myDevice'] = detectDevice(); // 'desktop' or 'mobile';
         $this->loadLanguage(); // Just load the minimal language for the portal operation, more can be loaded as needed
-        $cleaner = new cleaner();
         $mixer   = new encryption();
         $portal  = new portal();
         $bizunoUser= $this->setGuestCache();
@@ -197,16 +200,14 @@ class portalCtl
 
     private function initBusinessCache()
     {
-        global $bizunoMod, $currencies;
+        global $currencies;
         msgDebug("\nEntering initBusinessCache");
-        $bizunoMod = [];
         if ($this->needsInstall) { $this->cacheReload('guest'); }
         else { // normal operation
             msgDebug("\nBizuno is installed, loading cache");
-            $rows = dbGetMulti(BIZUNO_DB_PREFIX.'configuration');
-            foreach ($rows as $row) { $bizunoMod[$row['config_key']] = json_decode($row['config_value'], true); }
+            loadBusinessCache();
             if (biz_date('Y-m-d') > getModuleCache('phreebooks', 'fy', 'period_end')) { periodAutoUpdate(false); }
-            date_default_timezone_set($bizunoMod['bizuno']['settings']['locale']['timezone']);
+            date_default_timezone_set(getModuleCache('bizuno', 'settings', 'locale', 'timezone'));
         }
         if ($this->needsMigrate) { $this->cacheReload('migrate'); } // limit the dashboard list to just the portal
         $currencies = new currency(); // Needs PhreeBooks cache loaded to properly initialize otherwise defaults to USD
@@ -235,7 +236,7 @@ class portalCtl
         } else { msgDebug("\n  Cache is valid! NOT reloading..."); }
     }
 
-    private function cacheReload()
+    private function cacheReload($mode='user')
     {
         msgDebug("\nEntering reloadCache");
         bizAutoLoad(BIZBOOKS_ROOT.'model/registry.php', 'bizRegistry');
@@ -254,7 +255,6 @@ class portalCtl
 
     private function cleanBizRt()
     {
-        
         $value = isset($_GET['bizRt']) ? preg_replace("/[^a-zA-Z0-9\/]/", '', $_GET['bizRt']) : '';
         if (substr_count($value, '/') != 2) { // check for valid structure, else home
             msgDebug("\nNo path sent, overriding with userValidated = ".$this->userValidated);

@@ -1,6 +1,6 @@
 <?php
 /*
- * Bizuno Public - Portal model
+ * Portal Model
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,8 +21,8 @@
  * @author     Dave Premo, PhreeSoft <support@phreesoft.com>
  * @copyright  2008-2025, PhreeSoft, Inc.
  * @license    https://www.gnu.org/licenses/agpl-3.0.txt
- * @version    7.x Last Update: 2025-06-25
- * @filesource /portal/model.php
+ * @version    7.x Last Update: 2025-08-30
+ * @filesource /lib/model.php
  */
 
 namespace bizuno;
@@ -36,6 +36,14 @@ namespace bizuno;
 function biz_date($format='Y-m-d', $timestamp=null) {
     // @TODO - This needs to be adjusted to the users locale
     return !is_null($timestamp) ? date($format, $timestamp) : date($format);
+}
+
+function loadBusinessCache()
+{
+    global $bizunoMod;
+    $bizunoMod= [];
+    $rows     = dbGetMulti(BIZUNO_DB_PREFIX.'configuration');
+    foreach ($rows as $row) { $bizunoMod[$row['config_key']] = json_decode($row['config_value'], true); }
 }
 
 /**
@@ -100,7 +108,7 @@ function portalModuleListScan(&$modList, $path) {
     }
 }
 
-function portalGetBizIDVal($bizID, $idx=false) {
+function portalGetBizIDVal() {
     return defined('BIZUNO_TITLE') ? BIZUNO_TITLE : 'My Business';
 }
 
@@ -117,7 +125,7 @@ function portalSkins() {
 /**
  * Returns the pull down list of icons from the bizuno-icons plugin if installed and enabled.
  */
-function portalIcons(&$icons=[]) {
+function portalIcons() {
     if (!defined('BIZTHEMES_ICONS')) { return [['id'=>'default', 'text'=>lang('default')]]; }
     $output = [];
     foreach (BIZTHEMES_ICONS as $choice) { $output[] = ['id'=>$choice, 'text'=>ucwords(str_replace('-', ' ', $choice))]; }
@@ -127,22 +135,32 @@ function portalIcons(&$icons=[]) {
 final class portal
 {
     public $restHeaders = [];
+    public $useOauth = false;
+    private $phreeSoftREST =  'https://www.phreesoft.com/wp-json/phreesoft-custom/v1';
 
     function __construct() { }
 
     /**
-     * Sign out of this Bizuno session
-     * @param array $layout
+     * Validates the requestors credentials and sets the bizID
      */
-    public function logout(&$layout=[])
+    public function portalUserAuth()
     {
-        $email = getUserCache('profile', 'email');
-        msgDebug("\nEntering portal/logout with email = $email");
-        bizClrCookie('bizunoSession');
-        $layout = array_replace_recursive($layout, ['type'=>'page', 'jsHead'=>['redir'=>"window.location='".BIZUNO_SRVR."'"]]);
+        global $portal;
+        $userID = clean('HTTP_BIZUSER', 'email','server');
+        $userPW = clean('HTTP_BIZPASS', 'text', 'server');
+        if (!empty($userID) && !empty($userPW)) {
+            $portal->restHeaders = ['email'=>$userID, 'pass'=>$userPW, 'bizID'=>BIZUNO_BIZID];
+            $resp = $portal->restRequest('get', $this->phreeSoftREST, 'biz_hosted/get_rights');
+            if (empty($resp['userID'])) { return msgAdd('Invalid credentials!'); }
+//          $profile = array_replace(getUserCache('profile'), getMetaContact(getUserCache('profile', 'userID'), 'user_profile'));
+//          setUserCache('profile', '', $profile);
+            $role = dbMetaGet($resp['userRole'], 'bizuno_role');
+            setUserCache('role', '', $role);
+        }
+        return true;
     }
-
-/*    public function restRequest($type, $server, $endpoint='', $data=[], $opts=[]) {
+    
+    public function restRequest($type, $server, $endpoint='', $data=[], $opts=[]) {
         if (!empty($this->useOauth)) {
             msgDebug("\nSending REST request via oAuth");
             $token = $this->restOauthToken();
@@ -153,7 +171,7 @@ final class portal
         }
         $url = empty($endpoint) ? $server : "$server/$endpoint";
 //      msgDebug("\nHeaders: ".print_r($optsEP, true));
-        msgDebug("\nSending request of type $type to url $url and data of size : ".sizeof($data));
+        msgDebug("\nSending request of type $type to url $url and data of size: ".(is_array($data)?'Array('.sizeof($data).')':strlen($data)));
         $response= json_decode($this->cURL($url, $data, strtolower($type), $optsEP), true);
         msgDebug("\nLast response is: ".print_r($response, true));
         if (empty($response) && !is_array($response)) { msgAdd(sprintf(lang('err_no_communication'), $server), 'trap'); }
@@ -163,13 +181,13 @@ final class portal
 //          unset($response['message']);
         }
         return $response;
-    } */
+    }
 
     /**
      * Fetch oAuth2 token from a RESTful API server
      * @return token if successful, null if error
      */
-/*    public function restOauthToken($server='', $id='', $secret='')
+    public function restOauthToken($server='', $id='', $secret='')
     {
         msgDebug("\nEntering restTokenValidate with path = $server");
         if (empty($server)) { return msgAdd("Error! no server name passed!"); }
@@ -192,7 +210,7 @@ final class portal
             setModuleCache('bizuno', 'rest', '', $token);
         }
         return $token[$server]['token'];
-    } */
+    }
 
     /**
      * This method retrieves data from a remote server using cURL
@@ -201,10 +219,10 @@ final class portal
      * @param string $type - [default 'get'] Choices are 'get' or 'post'
      * @return result if successful, false (plus messageStack error) if fails
      */
-    function cURL($url, $data=[], $type='get', $opts=[]) {
+    public function cURL($url, $data=[], $type='get', $opts=[]) {
         $useragent = 'Mozilla/5.0 (Windows NT 5.1; rv:31.0) Gecko/20100101 Firefox/31.0';
         $size = is_array($data) ? 'array('.sizeof($data).')' : strlen($data);
-        msgDebug("\nAt class portal, sending request of length $size to url: $url via $type"); // with opts = ".print_r($opts, true));
+        msgDebug("\nAt class portal, sending request of length $size to url: $url via $type with sizeof opts = ".sizeof($opts)); //  ." with opts = ".print_r($opts, true)
         $rData = is_array($data) ? http_build_query($data) : $data;
         if ($type == 'get') { $url = $url.'?'.$rData; }
         $headers = [];
@@ -239,6 +257,7 @@ final class portal
 //curl_setopt($ch, CURLOPT_VERBOSE, true);
 //curl_setopt($ch, CURLOPT_STDERR, $fp);
         $response = curl_exec($ch);
+//msgDebug("\nRaw cURL data returned = ".print_r($response, true)); // This can be helpful if headers are sent first
         if (curl_errno($ch)) {
             msgDebug('cURL Error # '.curl_errno($ch).'. '.curl_error($ch));
             msgAdd('cURL Error # '.curl_errno($ch).'. '.curl_error($ch));

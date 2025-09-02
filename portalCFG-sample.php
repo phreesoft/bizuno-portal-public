@@ -1,6 +1,6 @@
 <?php
-/*
- * Bizuno Public - Portal configuration file
+/**
+ * Portal configuration file
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,43 +21,58 @@
  * @author     Dave Premo, PhreeSoft <support@phreesoft.com>
  * @copyright  2008-2025, PhreeSoft, Inc.
  * @license    https://www.gnu.org/licenses/agpl-3.0.txt
- * @version    7.x Last Update: 2025-06-20
- * @filesource /portalCFG.php
+ * @version    7.x Last Update: 2025-08-30
+ * @filesource /index.php
  */
 
 namespace bizuno;
 
-define('SCRIPT_START_TIME', microtime(true));
+if (!defined('SCRIPT_START_TIME')) { define('SCRIPT_START_TIME', microtime(true)); }
 
-// Business Identifier, Random Alpha-Numeric value, cannot be 0
-define('BIZUNO_BIZID', '0123456789');
+/******************** BEGIN - Site Specific Settings ***********************/
 
-// Path to location where your documents and media are stored, should point to a private folder unreachable via browser
-define('BIZUNO_DATA', $_SERVER['PHP_DOCUMENT_ROOT'].'/private/MyData/');
+// 1-10 digit AlphaNumeric, cannot be zero
+define('BIZUNO_BIZID', '1'); 
 
-// Randomly generated key used to encrypt session cookie, 16 alpha-num characters, randomly generated
-define('BIZUNO_KEY', '0123456789012345');
+// file system path to your data files.
+// Can be outside of your web server direct access but mush be within the 
+// path of PHP.
+define('BIZUNO_DATA', 'data/');
+
+// Encryption key for cookies, and other publically viewable information
+// Up to 16 alpha-numeric characters, randomly generated
+define('BIZUNO_KEY', '0123456789AbCdEf'); 
 
 // Database credentials
-define('BIZUNO_DB_PREFIX', '');
+define('BIZUNO_DBTYPE',   'mysql');      // Database Engine
+define('BIZUNO_DBHOST',   'localhost');  // Host Name
+define('BIZUNO_DB_PREFIX','');           // Database Table Prefix
+define('BIZUNO_DBNAME',   'dbName');     // Database Name
+define('BIZUNO_DBUSER',   'dbUsername'); // User name
+define('BIZUNO_DBPASS',   'dbPassword'); // Password
+
+/******************** END - Site Specific Settings ***********************/
+
+// Set the Bizuno host 
+define('BIZUNO_HOST', 'LOCAL');
+
+// Database credentials
 define('BIZPORTAL', [
-    'type'=>'mysql',
-    'host'=>'localhost',
-    'name'=>'DbName',
-    'user'=>'DbUser',
-    'pass'=>'DbPassword',
-    'prefix'=>BIZUNO_DB_PREFIX,
-]);
-
-// URL paths
+    'type'  => BIZUNO_DBTYPE,
+    'host'  => BIZUNO_DBHOST,
+    'name'  => BIZUNO_DBNAME,
+    'user'  => BIZUNO_DBUSER,
+    'pass'  => BIZUNO_DBPASS,
+    'prefix'=> BIZUNO_DB_PREFIX]);
 define('BIZUNO_PORTAL',  $_SERVER['SERVER_NAME']);
-define('BIZUNO_SRVR',   'https://'.BIZUNO_PORTAL.'/');
-define('BIZUNO_SCRIPTS', BIZUNO_SRVR.'assets/'); // pulled from a shared server
 
-// File system paths
-define('BIZUNO_PATH',    $_SERVER['PHP_DOCUMENT_ROOT'].'/web/');
-define('BIZUNO_REPO',    BIZUNO_PATH); // Path to repository where Bizuno library is located
-define('BIZUNO_ASSETS',  BIZUNO_PATH.'/vendor/');
+// File System Paths
+define('BIZUNO_PATH',   '');
+define('BIZUNO_REPO',   'vendor/phreesoft/bizuno/');
+define('BIZUNO_ASSETS', 'vendor/');
+// URL's
+define('BIZUNO_SCRIPTS', BIZUNO_REPO.'scripts/');
+define('BIZUNO_SRVR',    'https://'.BIZUNO_PORTAL.'/');
 
-// Initialize Bizuno Constants
-require(BIZUNO_REPO.'bizunoCFG.php');
+// Initialize Bizuno
+require(BIZUNO_REPO.'bizunoCFG.php'); // Config for current release
