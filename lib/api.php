@@ -45,13 +45,12 @@ class portalApi
         $parts= explode('/', clean('src', 'path_rel', 'get'), 2);
         if (defined('BIZUNO_DATA') && !empty(BIZUNO_DATA)) {
             if (!empty($parts[1])) {
-                if (strpos($parts[1], '?')!==false) { $parts[1] = substr($parts[1], 0, strpos($parts[1], '?')); }
-                $io   = new io(); // needs BIZUNO_DATA
-                $fn   = (empty($parts[0]) ? BIZUNO_REPO : BIZUNO_DATA).$parts[1];
-                $ext  = strtolower(pathinfo($parts[1], PATHINFO_EXTENSION));
-                $fBad = !file_exists($fn) ? true : false;
+                $io  = new io(); // needs BIZUNO_DATA
+                $fn  = (empty($parts[0]) ? BIZUNO_REPO : BIZUNO_DATA).$parts[1];
+                $ext = strtolower(pathinfo($parts[1], PATHINFO_EXTENSION));
+                $fBad= !file_exists($fn) ? true : false;
                 $validExts = array_merge($io->getValidExt('image'), $io->getValidExt('script'));
-                $eBad = !in_array($ext, $validExts) ? true : false;
+                $eBad= !in_array($ext, $validExts) ? true : false;
             } else { $fBad = true; }
         } else { $fBad = true; }
 
@@ -60,7 +59,7 @@ class portalApi
         header("Accept-Ranges: bytes");
         header("Content-Type: ".getMimeType($parts[1]));
         if ($fn<>BIZUNO_LOGO) {
-            header("Content-Length: ".filesize($fn));
+            header("Content-Length: ".filesize($parts[1]));
             header("Last-Modified: " .date(DATE_RFC2822, filemtime($fn)));
         }
 //msgDebugWrite();
