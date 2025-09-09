@@ -21,7 +21,7 @@
  * @author     Dave Premo, PhreeSoft <support@phreesoft.com>
  * @copyright  2008-2025, PhreeSoft, Inc.
  * @license    https://www.gnu.org/licenses/agpl-3.0.txt
- * @version    7.x Last Update: 2025-08-30
+ * @version    7.x Last Update: 2025-09-09
  * @filesource /index.php
  */
 
@@ -74,5 +74,9 @@ define('BIZUNO_ASSETS', 'vendor/');
 define('BIZUNO_SCRIPTS', BIZUNO_REPO.'scripts/');
 define('BIZUNO_SRVR',    'https://'.BIZUNO_PORTAL.'/');
 
-// Initialize Bizuno
+// Initialize Bizuno - Make sure the Bizuno library is installed and reachable
+if (!file_exists(BIZUNO_REPO.'bizunoCFG.php')) {
+    echo 'The Bizuno Library cannot be located. the library and installation instructions can be found <a href="https://github.com/phreesoft/bizuno">HERE</a>';
+    exit;
+}
 require(BIZUNO_REPO.'bizunoCFG.php'); // Config for current release
