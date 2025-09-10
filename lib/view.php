@@ -21,7 +21,7 @@
  * @author     Dave Premo, PhreeSoft <support@phreesoft.com>
  * @copyright  2008-2025, PhreeSoft, Inc.
  * @license    https://www.gnu.org/licenses/agpl-3.0.txt
- * @version    7.x Last Update: 2025-08-31
+ * @version    7.x Last Update: 2025-09-10
  * @filesource /lib/view.php
  */
 
@@ -109,28 +109,7 @@ class portalView
     {
         msgDebug("\nEntering install");
         if (isset($_POST['biz_user']) && isset($_POST['biz_pass'])) { // check for post to start install
-            msgDebug("\nEntering controllers/installBizuno");
-            $email = clean('biz_user', 'email', 'post');
-            if (empty($email)) { $this->errors .= 'Your email is invalid, please correct and try again!'; return; }
-            $cookie = base64_encode(json_encode([1, 0, $email, $this->instRole, $_SERVER['REMOTE_ADDR']]));
-            bizSetCookie('bizunoUser',   $email, time()+(60*60*24*7)); // 7 days
-            bizSetCookie('bizunoSession',$cookie,time()+(60*60*10)); // 10 hours
-            setUserCache('profile', 'userID', 1); // Local user ID
-            setUserCache('profile', 'email',  $email);
-            setUserCache('profile', 'psID',   0); // PhreeSoft user ID, zero in this case
-            if (!$this->installTestDB()) { return; }
-            $_POST['biz_fy']      = biz_date('Y'); // default fiscal year to this year
-            $_POST['biz_chart']   = $this->defChart;
-            $_POST['biz_timezone']= $this->guessTimeZone($this->locale);
-            bizAutoLoad(BIZBOOKS_ROOT.'controllers/bizuno/install/install.php', 'bizInstall');
-            $installer = new bizInstall();
-            $installer->installBizuno($layout);
-            if (isset($GLOBALS['BIZUNO_INSTALL_CID'])) { // since we are local, need to set role and password contact meta
-                $peppered = hash_hmac('sha256', $_POST['biz_pass'], BIZUNO_KEY);
-                $hashed = password_hash($peppered, PASSWORD_DEFAULT);
-                dbMetaSet(0, 'user_auth', $hashed, 'contacts', $GLOBALS['BIZUNO_INSTALL_CID']);
-            }
-            return;
+            if ($this->installBizuno($layout)) { return; }
         }
         // Show install form
         $logo = ['label'=>getModuleCache('bizuno','properties','title'),'attr'=>['type'=>'img','src'=>BIZBOOKS_URL_FS.'0/view/images/bizuno.png','height'=>48]];
@@ -141,7 +120,6 @@ class portalView
     <div class="info">'.$this->lang['biz_title']    .'</div><div class="field"><input type="text" name="biz_title" value="'.$this->lang['my_business'].'"></div>
     <div class="info">'.$this->lang['currency']     .'</div><div class="field">'.$this->getSelCur().'</div>
     <button>'.$this->lang['install'].'</button>';
-        
         if (!empty($this->errors)) { $html .= '<div class="error">'.$this->errors.'</div>'; }
         msgDebug("\nStarting to generate layout");
         $layout = ['type'=>'guest',
@@ -151,6 +129,46 @@ class portalView
                 'formEOF'=> ['order'=>90,'type'=>'html','html'=>"</form>"]]]],
             'forms' => ['frmInstall'=>['attr'=>['type'=>'form','method'=>'post']]]];
         msgDebug("\nReturning layout ".print_r($layout, true));
+    }
+
+    private function installBizuno(&$layout=[])
+    {
+        msgDebug("\nEntering controllers/installBizuno");
+        // Do some error checking
+        if (!file_exists(BIZUNO_DATA)) { // first, try to make it
+            @mkdir(BIZUNO_DATA);
+            if (!file_exists(BIZUNO_DATA) || !is_writable(BIZUNO_DATA)) { 
+                $this->errors .= 'I cannot find your data folder! Does the path exist and is it writeable?';
+                return;
+            }
+        }
+        $email = clean('biz_user', 'email', 'post');
+        if (empty($email)) { 
+            $this->errors .= 'Your email is invalid, please correct and try again!';
+            return;
+        }
+        if (!$this->installTestDB()) {
+            $this->errors .= "I'm having difficulties connecting to your database, Please checkthe credentials in your PortalCFG.php file!";
+            return;
+        }
+        $cookie = base64_encode(json_encode([1, 0, $email, $this->instRole, $_SERVER['REMOTE_ADDR']]));
+        bizSetCookie('bizunoUser',   $email, time()+(60*60*24*7)); // 7 days
+        bizSetCookie('bizunoSession',$cookie,time()+(60*60*10)); // 10 hours
+        setUserCache('profile', 'userID', 1); // Local user ID
+        setUserCache('profile', 'email',  $email);
+        setUserCache('profile', 'psID',   0); // PhreeSoft user ID, zero in this case
+        $_POST['biz_fy']      = biz_date('Y'); // default fiscal year to this year
+        $_POST['biz_chart']   = $this->defChart;
+        $_POST['biz_timezone']= $this->guessTimeZone($this->locale);
+        bizAutoLoad(BIZBOOKS_ROOT.'controllers/bizuno/install/install.php', 'bizInstall');
+        $installer = new bizInstall();
+        $installer->installBizuno($layout);
+        if (isset($GLOBALS['BIZUNO_INSTALL_CID'])) { // since we are local, need to set role and password contact meta
+            $peppered = hash_hmac('sha256', $_POST['biz_pass'], BIZUNO_KEY);
+            $hashed = password_hash($peppered, PASSWORD_DEFAULT);
+            dbMetaSet(0, 'user_auth', $hashed, 'contacts', $GLOBALS['BIZUNO_INSTALL_CID']);
+        }
+        return true;
     }
 
     private function getSelCur()

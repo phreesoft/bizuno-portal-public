@@ -21,7 +21,7 @@
  * @author     Dave Premo, PhreeSoft <support@phreesoft.com>
  * @copyright  2008-2025, PhreeSoft, Inc.
  * @license    https://www.gnu.org/licenses/agpl-3.0.txt
- * @version    7.x Last Update: 2025-09-09
+ * @version    7.x Last Update: 2025-09-10
  * @filesource /index.php
  */
 
@@ -68,8 +68,8 @@ define('BIZUNO_PORTAL',  $_SERVER['SERVER_NAME']);
 
 // File System Paths
 define('BIZUNO_PATH',   '');
-define('BIZUNO_REPO',   'vendor/phreesoft/bizuno/');
 define('BIZUNO_ASSETS', 'vendor/');
+define('BIZUNO_REPO',   BIZUNO_ASSETS.'phreesoft/bizuno/');
 // URL's
 define('BIZUNO_SCRIPTS', BIZUNO_REPO.'scripts/');
 define('BIZUNO_SRVR',    'https://'.BIZUNO_PORTAL.'/');

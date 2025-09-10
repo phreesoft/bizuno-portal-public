@@ -21,7 +21,7 @@
  * @author     Dave Premo, PhreeSoft <support@phreesoft.com>
  * @copyright  2008-2025, PhreeSoft, Inc.
  * @license    https://www.gnu.org/licenses/agpl-3.0.txt
- * @version    7.x Last Update: 2025-08-30
+ * @version    7.x Last Update: 2025-09-10
  * @filesource /lib/local/en_US.php
  */
 
@@ -48,5 +48,5 @@ $lang = [
     'migrate' => 'Migrate',
     'migrate_intro' => 'Looks like your database version is from a deprecated version of Bizuno. Press Migrate to bring your database to the current Bizuno release.',
     'err_illegal_access' => 'Illegal Access!',
-    'err_invalid_creds' => 'Invalid Credentials, please verify your business settings in your account at <a target="_blank" href="https://www.phreesoft.com">PhreeSoft.</a>',
+    'err_invalid_creds' => 'Invalid Username/Password.',
 ];
