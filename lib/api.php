@@ -21,7 +21,7 @@
  * @author     Dave Premo, PhreeSoft <support@phreesoft.com>
  * @copyright  2008-2025, PhreeSoft, Inc.
  * @license    https://www.gnu.org/licenses/agpl-3.0.txt
- * @version    7.x Last Update: 2025-08-30
+ * @version    7.x Last Update: 2025-09-13
  * @filesource /lib/api.php
  */
 
@@ -54,14 +54,12 @@ class portalApi
             } else { $fBad = true; }
         } else { $fBad = true; }
 
-        if ($eBad || $fBad) { $fn = BIZUNO_LOGO; }
+        if ($eBad || $fBad) { $fn = BIZUNO_REPO.'view/images/bizuno.png'; }
         // Send out the image
         header("Accept-Ranges: bytes");
-        header("Content-Type: ".getMimeType($parts[1]));
-        if ($fn<>BIZUNO_LOGO) {
-            header("Content-Length: ".filesize($parts[1]));
-            header("Last-Modified: " .date(DATE_RFC2822, filemtime($fn)));
-        }
+        header("Content-Type: ".getMimeType($fn));
+        header("Content-Length: ".filesize($fn));
+        header("Last-Modified: " .date(DATE_RFC2822, filemtime($fn)));
 //msgDebugWrite();
         readfile($fn);
         exit();
