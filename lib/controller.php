@@ -21,7 +21,7 @@
  * @author     Dave Premo, PhreeSoft <support@phreesoft.com>
  * @copyright  2008-2025, PhreeSoft, Inc.
  * @license    https://www.gnu.org/licenses/agpl-3.0.txt
- * @version    7.x Last Update: 2025-08-31
+ * @version    7.x Last Update: 2025-10-26
  * @filesource /lib/controller.php
  */
 
@@ -56,7 +56,6 @@ class portalCtl
         $io      = new io();
         $cleaner = new cleaner();
         $portal  = new portal();
-        $GLOBALS['myDevice'] = detectDevice(); // 'desktop' or 'mobile';
 
 // Uncomment these lines to force a user logout on page refresh.
 //bizSetCookie('bizunoUser',    '', 0);
@@ -148,7 +147,6 @@ class portalCtl
         global $mixer, $portal, $bizunoUser;
         bizAutoLoad(BIZBOOKS_ROOT.'locale/currency.php','currency');
         bizAutoLoad(BIZBOOKS_ROOT.'model/encrypter.php','encryption');
-        $GLOBALS['myDevice'] = detectDevice(); // 'desktop' or 'mobile';
         $this->loadLanguage(); // Just load the minimal language for the portal operation, more can be loaded as needed
         $mixer   = new encryption();
         $portal  = new portal();
@@ -164,7 +162,7 @@ class portalCtl
     {
         msgDebug("\nEntering setGuestCache");
         return [
-            'profile'   => ['userID'=>0, 'email'=>'', 'language'=>'en_US'], // , 'admin_id'=>0, 'biz_id'=>0
+            'profile'   => ['userID'=>0, 'email'=>'', 'language'=>'en_US'],
             'business'  => ['bizID' =>defined('BIZUNO_BIZID') ? BIZUNO_BIZID : 0],
             'dashboards'=> []];
     }
@@ -175,7 +173,6 @@ class portalCtl
         // typical case, cookie not expired, now have user, email and role
         if (is_array($this->creds) && sizeof($this->creds)==5 && $this->creds[4]==$_SERVER['REMOTE_ADDR']) {
             setUserCache('profile', 'userID',  $this->creds[0]);
-            setUserCache('profile', 'admin_id',$this->creds[0]); // DEPRECATED - for compatibility to older versions
             setUserCache('profile', 'psID',    $this->creds[1]);
             setUserCache('profile', 'email',   $this->creds[2]);
             setUserCache('profile', 'userRole',$this->creds[3]);
