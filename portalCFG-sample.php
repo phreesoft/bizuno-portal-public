@@ -67,7 +67,6 @@ define('BIZPORTAL', [
 define('BIZUNO_PORTAL',  $_SERVER['SERVER_NAME']);
 
 // File System Paths
-define('BIZUNO_PATH',   '');
 define('BIZUNO_ASSETS', 'vendor/');
 define('BIZUNO_REPO',   BIZUNO_ASSETS.'phreesoft/bizuno/');
 // URL's
