@@ -57,7 +57,7 @@ define('BIZUNO_DBPASS',   'dbPassword'); // Password
 define('BIZUNO_HOST', 'LOCAL');
 
 // Database credentials
-define('BIZPORTAL', [
+define('BIZUNO_DB_CREDS', [
     'type'  => BIZUNO_DBTYPE,
     'host'  => BIZUNO_DBHOST,
     'name'  => BIZUNO_DBNAME,
@@ -67,15 +67,15 @@ define('BIZPORTAL', [
 define('BIZUNO_PORTAL',  $_SERVER['SERVER_NAME']);
 
 // File System Paths
-define('BIZUNO_ASSETS', 'vendor/');
-define('BIZUNO_REPO',   BIZUNO_ASSETS.'phreesoft/bizuno/');
+define('BIZUNO_FS_ASSETS', 'vendor/');
+define('BIZUNO_FS_LIBRARY',   BIZUNO_FS_ASSETS.'phreesoft/bizuno/');
 // URL's
-define('BIZUNO_SCRIPTS', BIZUNO_REPO.'scripts/');
-define('BIZUNO_SRVR',    'https://'.BIZUNO_PORTAL.'/');
+define('BIZUNO_URL_SCRIPTS', BIZUNO_FS_LIBRARY.'scripts/');
+define('BIZUNO_URL_PORTAL',    'https://'.BIZUNO_PORTAL.'/');
 
 // Initialize Bizuno - Make sure the Bizuno library is installed and reachable
-if (!file_exists(BIZUNO_REPO.'bizunoCFG.php')) {
+if (!file_exists(BIZUNO_FS_LIBRARY.'bizunoCFG.php')) {
     echo 'The Bizuno Library cannot be located. the library and installation instructions can be found <a href="https://github.com/phreesoft/bizuno">HERE</a>';
     exit;
 }
-require(BIZUNO_REPO.'bizunoCFG.php'); // Config for current release
+require(BIZUNO_FS_LIBRARY.'bizunoCFG.php'); // Config for current release

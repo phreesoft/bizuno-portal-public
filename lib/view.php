@@ -57,7 +57,7 @@ class portalView
             if ($this->validateUser($layout)) { return; } // if validated, return to load home page
         }
         // Show login form
-        $logo = ['label'=>getModuleCache('bizuno','properties','title'),'attr'=>['type'=>'img','src'=>BIZBOOKS_URL_FS.'0/view/images/bizuno.png','height'=>48]];
+        $logo = ['label'=>getModuleCache('bizuno','properties','title'),'attr'=>['type'=>'img','src'=>BIZUNO_URL_FS.'0/view/images/bizuno.png','height'=>48]];
         $html = '<div>'.html5('', $logo).'</div>
     <div class="text">'.$this->lang['welcome'].'</div>
     <div class="field"><input type="text" name="bizUser" placeholder="'.$this->lang['email'].'"> </div>
@@ -97,7 +97,7 @@ class portalView
         if (password_verify($peppered, $encPW['value'])) {
             $user = ['userID'=>$user['id'], 'psID'=>0, 'userEmail'=>$email, 'userRole'=>$profile['role_id'], 'userName'=>$user['primary_name']];
             setUserCookie($user);
-            $data = ['content'=>['action'=>'eval','actionData'=>"loadSessionStorage(); window.location='https://".BIZUNO_HOME."';"]];
+            $data = ['content'=>['action'=>'eval','actionData'=>"loadSessionStorage(); window.location='https://".BIZUNO_URL_PORTAL."';"]];
             $layout = array_replace_recursive($layout, $data);
             return true;
         }
@@ -112,7 +112,7 @@ class portalView
             if ($this->installBizuno($layout)) { return; }
         }
         // Show install form
-        $logo = ['label'=>getModuleCache('bizuno','properties','title'),'attr'=>['type'=>'img','src'=>BIZBOOKS_URL_FS.'0/view/images/bizuno.png','height'=>48]];
+        $logo = ['label'=>getModuleCache('bizuno','properties','title'),'attr'=>['type'=>'img','src'=>BIZUNO_URL_FS.'0/view/images/bizuno.png','height'=>48]];
         $html = '<div>'.html5('', $logo).'</div>
     <div class="info">'.$this->lang['install_intro'].'</div><br />
     <div class="info">'.$this->lang['biz_user']     .'</div><div class="field"><input type="text" name="biz_user" value=""></div>
@@ -160,7 +160,7 @@ class portalView
         $_POST['biz_fy']      = biz_date('Y'); // default fiscal year to this year
         $_POST['biz_chart']   = $this->defChart;
         $_POST['biz_timezone']= $this->guessTimeZone($this->locale);
-        bizAutoLoad(BIZBOOKS_ROOT.'controllers/bizuno/install/install.php', 'bizInstall');
+        bizAutoLoad(BIZUNO_FS_LIBRARY.'controllers/bizuno/install/install.php', 'bizInstall');
         $installer = new bizInstall();
         $installer->installBizuno($layout);
         if (isset($GLOBALS['BIZUNO_INSTALL_CID'])) { // since we are local, need to set role and password contact meta
@@ -196,8 +196,8 @@ class portalView
     private function installTestDB()
     {
         global $db;
-        if (!defined('BIZPORTAL')) { $this->errors .= 'DB credentials have not been defined, install cannot continue!'; return ;}
-        $db = new db(BIZPORTAL);
+        if (!defined('BIZUNO_DB_CREDS')) { $this->errors .= 'DB credentials have not been defined, install cannot continue!'; return ;}
+        $db = new db(BIZUNO_DB_CREDS);
         if (!$db->connected) { $this->errors .= 'Bizuno cannot connect to your DB, please check your credentials!'; return; }
         return true;
     }
@@ -220,8 +220,8 @@ class portalView
             return;
         }
         // Show migrate form
-        $js    = '<link rel="stylesheet" href="'.BIZBOOKS_URL_FS.'0/view/portal.css" />';
-        $logo  = ['label'=>getModuleCache('bizuno','properties','title'),'attr'=>['type'=>'img','src'=>BIZBOOKS_URL_FS.'0/view/images/bizuno.png','height'=>48]];
+        $js    = '<link rel="stylesheet" href="'.BIZUNO_URL_FS.'0/view/portal.css" />';
+        $logo  = ['label'=>getModuleCache('bizuno','properties','title'),'attr'=>['type'=>'img','src'=>BIZUNO_URL_FS.'0/view/images/bizuno.png','height'=>48]];
         $html  = '<div>'.html5('', $logo).'</div>'."\n".'<div class="info">'.$this->lang['migrate_intro'].'</div><br />'."\n".'<button>'.$this->lang['migrate'].'</button>'."\n";
         if (!empty($this->errors)) { $html .= '<div class="error">'.$this->errors.'</div>'; }
         msgDebug("\nStarting to generate layout");
@@ -232,7 +232,7 @@ class portalView
                 'formBOF'=> ['order'=>20,'type'=>'form','key' =>'frmMigrate'],
                 'body'   => ['order'=>51,'type'=>'html','html'=>$html],
                 'formEOF'=> ['order'=>90,'type'=>'html','html'=>"</form>"]]]],
-            'forms'  =>['frmMigrate'=>['attr'=>['type'=>'form','action'=>BIZUNO_AJAX."&migrate=1"]]],
+            'forms'  =>['frmMigrate'=>['attr'=>['type'=>'form','action'=>BIZUNO_URL_AJAX."&migrate=1"]]],
             'jsReady'=>['init'=>"ajaxForm('frmMigrate');"]];
         msgDebug("\nReturning layout ".print_r($layout, true));
     }
@@ -241,7 +241,7 @@ class portalView
         $dbVer = getModuleCache('bizuno', 'properties', 'version');
         msgDebug("\nEntering migrateBizuno with dbVersion = $dbVer and MODULE_BIZUNO_VERSION = ".MODULE_BIZUNO_VERSION);
         if (version_compare($dbVer, '7.0') >= 0) { return; } // already there
-        bizAutoLoad(BIZBOOKS_ROOT.'controllers/bizuno/install/migrate-7.0.php');
+        bizAutoLoad(BIZUNO_FS_LIBRARY.'controllers/bizuno/install/migrate-7.0.php');
         $charts = getModuleCache('phreebooks', 'chart');
         if (empty($charts)) { // if the COA is not present, bail on migrate since pre 7.0 it only survived in the cache
             return msgAdd('The chart of accounts is missing! Bailing');
@@ -254,7 +254,7 @@ class portalView
     public function migrateBizunoNext(&$layout=[])
     {
         msgDebug("\nEntering migrateBizunoNext.");
-        bizAutoLoad(BIZBOOKS_ROOT.'controllers/bizuno/install/migrate-7.0.php');
+        bizAutoLoad(BIZUNO_FS_LIBRARY.'controllers/bizuno/install/migrate-7.0.php');
         $cron = getModuleCache('bizuno', 'cron', 'migrateBizuno');
         migrateBizuno($cron);
         msgDebug("\nBack from migrateBizuno with cron = ".print_r($cron, true));

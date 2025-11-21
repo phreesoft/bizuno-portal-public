@@ -46,7 +46,7 @@ class portalApi
         if (defined('BIZUNO_DATA') && !empty(BIZUNO_DATA)) {
             if (!empty($parts[1])) {
                 $io  = new io(); // needs BIZUNO_DATA
-                $fn  = (empty($parts[0]) ? BIZUNO_REPO : BIZUNO_DATA).$parts[1];
+                $fn  = (empty($parts[0]) ? BIZUNO_FS_LIBRARY : BIZUNO_DATA).$parts[1];
                 $ext = strtolower(pathinfo($parts[1], PATHINFO_EXTENSION));
                 $fBad= !file_exists($fn) ? true : false;
                 $validExts = array_merge($io->getValidExt('image'), $io->getValidExt('script'));
@@ -54,7 +54,7 @@ class portalApi
             } else { $fBad = true; }
         } else { $fBad = true; }
 
-        if ($eBad || $fBad) { $fn = BIZUNO_REPO.'view/images/bizuno.png'; }
+        if ($eBad || $fBad) { $fn = BIZUNO_FS_LIBRARY.'view/images/bizuno.png'; }
         // Send out the image
         header("Accept-Ranges: bytes");
         header("Content-Type: ".getMimeType($fn));
@@ -70,7 +70,7 @@ class portalApi
      */
     public function easyuiJS()
     {
-        $basePath = BIZUNO_REPO.'/scripts/jquery-easyui-ext';
+        $basePath = BIZUNO_FS_LIBRARY.'/scripts/jquery-easyui-ext';
         $output  = '';
         $output .= file_get_contents("$basePath/portal/jquery.portal.js")           ."\n"; // Portal
         $output .= file_get_contents("$basePath/color/jquery.color.js")             ."\n"; // Color
@@ -89,7 +89,7 @@ class portalApi
      */
     public function easyuiCSS()
     {
-        $basePath = BIZUNO_REPO.'scripts/jquery-easyui-ext';
+        $basePath = BIZUNO_FS_LIBRARY.'scripts/jquery-easyui-ext';
         $icons   = [];
         $output  = '';
 //      $output .= file_get_contents("$basePath/portal/jquery.portal.css")           ."\n"; // No .css file for Portal
@@ -112,7 +112,7 @@ class portalApi
     {
         $imgPath = "$basePath/$extName/images";
         if (!is_dir($imgPath)) { return; }
-        $urlPath = BIZUNO_SCRIPTS."jquery-easyui-ext/$extName";
+        $urlPath = BIZUNO_URL_SCRIPTS."jquery-easyui-ext/$extName";
         $files = scandir($imgPath);
         foreach ($files as $file) {
             if ($file == "." || $file == "..") { continue; }
@@ -127,7 +127,7 @@ class portalApi
     public function logout(&$layout=[])
     {
         bizClrCookie('bizunoSession');
-        $layout = array_replace_recursive($layout, ['type'=>'page', 'jsHead'=>['redir'=>"window.location='".BIZUNO_SRVR."';"]]);
+        $layout = array_replace_recursive($layout, ['type'=>'page', 'jsHead'=>['redir'=>"window.location='".BIZUNO_URL_PORTAL."';"]]);
     }
 
     public function orderAdd(&$layout=[])

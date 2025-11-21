@@ -27,17 +27,17 @@
 
 namespace bizuno;
 
-require(BIZBOOKS_ROOT.'model/functions.php'); // Core Bizuno functions
-require(BIZUNO_ASSETS.'autoload.php'); // Load the libraries
+require(BIZUNO_FS_LIBRARY.'model/functions.php'); // Core Bizuno functions
+require(BIZUNO_FS_ASSETS.'autoload.php'); // Load the libraries
 bizAutoLoad('lib/model.php','getUserCookie', 'function'); // portal specific
 bizAutoLoad('lib/api.php',  'portalApi');
 bizAutoLoad('lib/view.php', 'portalView');
-bizAutoLoad(BIZBOOKS_ROOT.'model/msg.php',     'messageStack');
-bizAutoLoad(BIZBOOKS_ROOT.'model/io.php',      'io');
-bizAutoLoad(BIZBOOKS_ROOT.'model/db.php',      'db');
-bizAutoLoad(BIZBOOKS_ROOT.'model/mail.php',    'bizunoMailer');
-bizAutoLoad(BIZBOOKS_ROOT.'model/manager.php', 'mgrJournal');
-bizAutoLoad(BIZBOOKS_ROOT.'locale/cleaner.php','cleaner');
+bizAutoLoad(BIZUNO_FS_LIBRARY.'model/msg.php',     'messageStack');
+bizAutoLoad(BIZUNO_FS_LIBRARY.'model/io.php',      'io');
+bizAutoLoad(BIZUNO_FS_LIBRARY.'model/db.php',      'db');
+bizAutoLoad(BIZUNO_FS_LIBRARY.'model/mail.php',    'bizunoMailer');
+bizAutoLoad(BIZUNO_FS_LIBRARY.'model/manager.php', 'mgrJournal');
+bizAutoLoad(BIZUNO_FS_LIBRARY.'locale/cleaner.php','cleaner');
 
 class portalCtl
 {
@@ -80,9 +80,9 @@ class portalCtl
     {
         global $html5;
         $modsEasy= ['administrate','api','bizuno','common','contacts','inventory','payment','phreebooks','phreeform','quality','shipping'];
-        bizAutoLoad(BIZBOOKS_ROOT.'view/main.php', 'view');
+        bizAutoLoad(BIZUNO_FS_LIBRARY.'view/main.php', 'view');
         $ui = !in_array($this->route['module'], $modsEasy) ? 'jQueryUI' : 'easyUI';
-        bizAutoLoad(BIZBOOKS_ROOT."view/$ui/html5.php", 'html5');
+        bizAutoLoad(BIZUNO_FS_LIBRARY."view/$ui/html5.php", 'html5');
         $html5 = new html5();
     }
 
@@ -90,8 +90,8 @@ class portalCtl
     {
         global $db;
         msgDebug("\nEntering getScope");
-        if (!defined('BIZPORTAL')) { msgDebug("\nBIZPORTAL not defined, returning guest"); return 'guest'; } // Path to db not defined, needs install and creds set
-        $creds= defined('BIZPORTAL') ? BIZPORTAL : [];
+        if (!defined('BIZUNO_DB_CREDS')) { msgDebug("\nBIZUNO_DB_CREDS not defined, returning guest"); return 'guest'; } // Path to db not defined, needs install and creds set
+        $creds= defined('BIZUNO_DB_CREDS') ? BIZUNO_DB_CREDS : [];
         $db   = new db($creds);
         if (!$db->connected) { msgDebug("\nDB not connected, returning guest"); return 'guest'; }
         if ('portal'==$this->route['module'] && 'api'==$this->route['page'])         { msgDebug("\nAPI Request, returning api");         return 'api'; }
@@ -145,8 +145,8 @@ class portalCtl
     private function getCodex()
     {
         global $mixer, $portal, $bizunoUser;
-        bizAutoLoad(BIZBOOKS_ROOT.'locale/currency.php','currency');
-        bizAutoLoad(BIZBOOKS_ROOT.'model/encrypter.php','encryption');
+        bizAutoLoad(BIZUNO_FS_LIBRARY.'locale/currency.php','currency');
+        bizAutoLoad(BIZUNO_FS_LIBRARY.'model/encrypter.php','encryption');
         $this->loadLanguage(); // Just load the minimal language for the portal operation, more can be loaded as needed
         $mixer   = new encryption();
         $portal  = new portal();
@@ -217,7 +217,7 @@ class portalCtl
         if (empty(getUserCache('business', 'bizID')) || empty(getUserCache('profile', 'email'))) { $this->cacheReload('guest'); return; } // not logged in
         if (version_compare($dbVer, MODULE_BIZUNO_VERSION) < 0) {
             msgDebug("\nDB is downlevel, upgrading!");
-            bizAutoLoad(BIZBOOKS_ROOT.'controllers/bizuno/install/upgrade.php');
+            bizAutoLoad(BIZUNO_FS_LIBRARY.'controllers/bizuno/install/upgrade.php');
             bizunoUpgrade();
         }
     }
@@ -236,7 +236,7 @@ class portalCtl
     private function cacheReload($mode='user')
     {
         msgDebug("\nEntering reloadCache");
-        bizAutoLoad(BIZBOOKS_ROOT.'model/registry.php', 'bizRegistry');
+        bizAutoLoad(BIZUNO_FS_LIBRARY.'model/registry.php', 'bizRegistry');
         $registry = new bizRegistry();
         $registry->initRegistry(getUserCache('profile', 'email'), getUserCache('business', 'bizID'));
         bizCacheExpSet(time() + $this->bizTimer);
