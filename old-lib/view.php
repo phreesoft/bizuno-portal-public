@@ -21,7 +21,7 @@
  * @author     Dave Premo, PhreeSoft <support@phreesoft.com>
  * @copyright  2008-2025, PhreeSoft, Inc.
  * @license    https://www.gnu.org/licenses/agpl-3.0.txt
- * @version    7.x Last Update: 2025-09-10
+ * @version    7.x Last Update: 2025-11-22
  * @filesource /lib/view.php
  */
 
@@ -97,7 +97,7 @@ class portalView
         if (password_verify($peppered, $encPW['value'])) {
             $user = ['userID'=>$user['id'], 'psID'=>0, 'userEmail'=>$email, 'userRole'=>$profile['role_id'], 'userName'=>$user['primary_name']];
             setUserCookie($user);
-            $data = ['content'=>['action'=>'eval','actionData'=>"loadSessionStorage(); window.location='https://".BIZUNO_URL_PORTAL."';"]];
+            $data = ['content'=>['action'=>'eval','actionData'=>"loadSessionStorage(); window.location='".BIZUNO_URL_PORTAL."';"]];
             $layout = array_replace_recursive($layout, $data);
             return true;
         }
